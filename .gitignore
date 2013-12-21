@@ -1,0 +1,9 @@
+*.pyc
+*.swp
+/venv
+.coverage
+/cover
+/dist
+/build
+LogDefer.egg-info
+__pycache__
