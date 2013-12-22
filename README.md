@@ -1,6 +1,6 @@
 ## NAME
 
-LogDefer - Deferred logs and timers
+[![Build Status](https://travis-ci.org/mikep/LogDefer.png?branch=master)](https://travis-ci.org/mikep/LogDefer) LogDefer - Deferred logs and timers
 
 --
 
