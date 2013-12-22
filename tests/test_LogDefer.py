@@ -20,10 +20,10 @@ class LogDeferTest(unittest.TestCase):
         self.assertEqual(self.logger.levels, (40, 30, 20, 10))
 
     def test_message_object(self):
-        self.assertIn('start', self.logger.message)
-        self.assertIn('logs', self.logger.message)
-        self.assertIn('timers', self.logger.message)
-        self.assertIn('data', self.logger.message)
+        self.assertTrue('start' in self.logger.message)
+        self.assertTrue('logs' in self.logger.message)
+        self.assertTrue('timers' in self.logger.message)
+        self.assertTrue('data' in self.logger.message)
 
         self.assertTrue(
             type(self.logger.message['start']),
@@ -53,12 +53,12 @@ class LogDeferTest(unittest.TestCase):
 
         self.assertEqual(len(list(log_object.keys())), 2)
 
-        self.assertIn('start', log_object)
-        self.assertIn('end', log_object)
+        self.assertTrue('start' in log_object)
+        self.assertTrue('end' in log_object)
 
-        self.assertNotIn('logs', log_object)
-        self.assertNotIn('timers', log_object)
-        self.assertNotIn('data', log_object)
+        self.assertFalse('logs' in log_object)
+        self.assertFalse('timers' in log_object)
+        self.assertFalse('data' in log_object)
 
     def test_log_one_message(self):
         # Logging one message should only have 1 log object in the output
@@ -69,7 +69,7 @@ class LogDeferTest(unittest.TestCase):
         self.logger.debug(log_message)
         log_object = self.__log_defer_to_dict__()
 
-        self.assertIn('logs', log_object)
+        self.assertTrue('logs' in log_object)
 
         self.assertEqual(type(log_object['logs']), list)
         self.assertEqual(len(log_object['logs']), 1)
@@ -104,7 +104,7 @@ class LogDeferTest(unittest.TestCase):
         self.logger.debug(log_message, log_data)
         log_object = self.__log_defer_to_dict__()
 
-        self.assertIn('logs', log_object)
+        self.assertTrue('logs' in log_object)
 
         self.assertEqual(type(log_object['logs']), list)
         self.assertEqual(len(log_object['logs']), 1)
@@ -130,8 +130,8 @@ class LogDeferTest(unittest.TestCase):
 
         # data
         self.assertEqual(type(message[3]), dict)
-        self.assertIn("key", message[3])
-        self.assertIn("123", message[3])
+        self.assertTrue("key" in message[3])
+        self.assertTrue("123" in message[3])
 
         for k in list(log_data.keys()):
             self.assertEqual(message[3][k], log_data[k])
@@ -165,7 +165,7 @@ class LogDeferTest(unittest.TestCase):
 
         log_object = self.__log_defer_to_dict__()
 
-        self.assertIn('logs', log_object)
+        self.assertTrue('logs' in log_object)
 
         self.assertEqual(type(log_object['logs']), list)
         self.assertEqual(len(log_object['logs']), 5)
@@ -204,13 +204,13 @@ class LogDeferTest(unittest.TestCase):
             time.sleep(0.01)
 
         log_object = self.__log_defer_to_dict__()
-        self.assertIn('timers', log_object)
+        self.assertTrue('timers' in log_object)
 
         self.assertEqual(log_object['timers'][0][0], 'junktimer')
         self.assertEqual(len(log_object['timers']), 1)
 
-        self.assertEqual("{:.2f}".format(
-            log_object['timers'][0][2] - log_object['timers'][0][1]), '0.01'
+        self.assertEqual("{timer:.2f}".format(
+            timer=(log_object['timers'][0][2] - log_object['timers'][0][1])), '0.01'
         )
 
     def test_log_timers(self):
@@ -221,18 +221,18 @@ class LogDeferTest(unittest.TestCase):
             time.sleep(0.01)
 
         log_object = self.__log_defer_to_dict__()
-        self.assertIn('timers', log_object)
+        self.assertTrue('timers' in log_object)
 
         self.assertEqual(log_object['timers'][0][0], 'junktimer')
         self.assertEqual(log_object['timers'][1][0], 'junktimer2')
         self.assertEqual(len(log_object['timers']), 2)
 
-        self.assertEqual("{:.2f}".format(
-            log_object['timers'][0][2] - log_object['timers'][0][1]), '0.01'
+        self.assertEqual("{timer:.2f}".format(
+            timer=(log_object['timers'][0][2] - log_object['timers'][0][1])), '0.01'
         )
 
-        self.assertEqual("{:.2f}".format(
-            log_object['timers'][1][2] - log_object['timers'][1][1]), '0.01'
+        self.assertEqual("{timer:.2f}".format(
+            timer=(log_object['timers'][1][2] - log_object['timers'][1][1])), '0.01'
         )
 
     def test_data(self):
@@ -240,7 +240,7 @@ class LogDeferTest(unittest.TestCase):
         self.logger.data(data)
 
         log_object = self.__log_defer_to_dict__()
-        self.assertIn('data', log_object)
+        self.assertTrue('data' in log_object)
         self.assertEqual(data, log_object['data'])
 
     def test_message_data(self):
@@ -249,7 +249,7 @@ class LogDeferTest(unittest.TestCase):
         self.logger.warn("aaa", data, more)
 
         log_object = self.__log_defer_to_dict__()
-        self.assertIn('logs', log_object)
+        self.assertTrue('logs' in log_object)
         self.assertEqual(
             dict(list(data.items()) + list(more.items())), log_object['logs'][0][-1]
         )
@@ -266,7 +266,7 @@ class LogDeferTest(unittest.TestCase):
         self.logger.warn('junk', self.logger)
 
         log_object = self.__log_defer_to_dict__()
-        self.assertIn('data', log_object)
+        self.assertTrue('data' in log_object)
 
         self.assertEqual(2, len(list(log_object['data'].keys())))
         self.assertEqual(log_object['data']['key'], str(data['key']))
