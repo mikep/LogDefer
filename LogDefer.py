@@ -1,6 +1,7 @@
 import json
 import os
 import re
+import tempfile
 import time
 
 __version__ = "0.1.0"
@@ -21,6 +22,14 @@ class LogDefer(object):
             'data': {},
         }
 
+        temp_file_path = "/tmp/log_defer_incremental_logs/"
+        self.tempfile = tempfile.NamedTemporaryFile(dir=temp_file_path, delete=True, prefix=str(time.time()) + ".")
+
+    def record_incremental_log(self):
+        self.tempfile.write(
+            self.__log_message_json__({time.time(): self.message})
+        )
+
     def add_message(self, level='30', message="", data=None, *args):
         """ Add message to log object """
         log = [self._get_et(), level, message]
@@ -33,6 +42,7 @@ class LogDefer(object):
             log.append(data)
 
         self.message['logs'].append(log)
+        self.record_incremental_log()
 
     def timer(self, name=None):
         """
@@ -48,6 +58,7 @@ class LogDefer(object):
         else:
             self.message['timers'][name]['end'] = self._get_et()
 
+        self.record_incremental_log()
         return self
 
     def __enter__(self):
@@ -62,6 +73,7 @@ class LogDefer(object):
             self.message['data'] = dict(
                 list(self.message['data'].items()) + list(d.items())
             )
+        self.record_incremental_log()
 
     def finalize_log(self):
         """ Format and return the log object for logging. """
@@ -89,9 +101,10 @@ class LogDefer(object):
         # Record end time.
         self.message['end'] = self._get_et()
 
-    def __log_message_json__(self):
+    def __log_message_json__(self, message=None):
+        message = self.message if not message else message
         try:
-            return json.dumps(self.message)
+            return json.dumps(message)
         except:
             def serialize_fix(m):
                 try:
@@ -112,7 +125,7 @@ class LogDefer(object):
                 except:
                     return str(m)
 
-            return json.dumps(serialize_fix(self.message))
+            return json.dumps(serialize_fix(message))
 
     # Log level functions
     def error(self, message='', data=None, *args):
