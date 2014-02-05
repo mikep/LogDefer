@@ -22,13 +22,24 @@ class LogDefer(object):
             'data': {},
         }
 
-        temp_file_path = "/tmp/log_defer_incremental_logs/"
-        self.tempfile = tempfile.NamedTemporaryFile(dir=temp_file_path, delete=True, prefix=str(time.time()) + ".")
+        if 'disable_incremental_logging' in options:
+            self.tempfile = None
+        else:
+            if 'temp_file_path' in options:
+                temp_file_path = options.get('temp_file_path')
+            else:
+                temp_file_path = "/tmp/log_defer_incremental_logs/"
+
+            self.tempfile = tempfile.NamedTemporaryFile(
+                dir=temp_file_path, delete=False, prefix=str(time.time()) + "."
+            )
+
 
     def record_incremental_log(self):
-        self.tempfile.write(
-            self.__log_message_json__({time.time(): self.message})
-        )
+        if self.tempfile:
+            self.tempfile.write(
+                self.__log_message_json__({time.time(): self.message})
+            )
 
     def add_message(self, level='30', message="", data=None, *args):
         """ Add message to log object """
@@ -78,7 +89,12 @@ class LogDefer(object):
     def finalize_log(self):
         """ Format and return the log object for logging. """
         self.__format_log_message_output__()
-        return self.__log_message_json__()
+        formatted_log = self.__log_message_json__()
+
+        if self.tempfile:
+            os.remove(self.tempfile.name)
+
+        return formatted_log
 
     def __format_log_message_output__(self):
         # Clean up, log-defer-viz doesn't like empty objects.

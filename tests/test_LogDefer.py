@@ -1,4 +1,5 @@
 import json
+import os
 import unittest
 import time
 
@@ -13,8 +14,25 @@ log_levels = {
 
 
 class LogDeferTest(unittest.TestCase):
+    incremental_log_path = '/tmp/log_defer_incremental_logs/'
+
     def setUp(self):
+        self.logger = LogDefer({'disable_incremental_logging': True})
+
+    def setUpWithIncrementalLogging(self):
+        os.mkdir(self.incremental_log_path)
         self.logger = LogDefer()
+
+    def setUpWithIncrementalLoggingCustomPath(self):
+        os.mkdir(self.incremental_log_path)
+        self.logger = LogDefer({'temp_file_path': '/tmp/log_defer_incremental_logs/'})
+
+    def tearDown(self):
+        if os.path.exists(self.incremental_log_path):
+            for f in os.listdir(self.incremental_log_path):
+                os.remove(os.path.join(self.incremental_log_path, f))
+
+            os.rmdir(self.incremental_log_path)
 
     def test_default_levels(self):
         self.assertEqual(self.logger.levels, (40, 30, 20, 10))
@@ -270,6 +288,36 @@ class LogDeferTest(unittest.TestCase):
 
         self.assertEqual(2, len(list(log_object['data'].keys())))
         self.assertEqual(log_object['data']['key'], str(data['key']))
+
+    def test_incremental_logging(self):
+        self.setUpWithIncrementalLogging()
+
+        self.logger = LogDefer()
+        log_message = "This is a debug message"
+        self.logger.debug(log_message)
+
+        # Check for incremental log file
+        self.assertTrue(os.path.exists(self.logger.tempfile.name))
+
+        log_object = self.__log_defer_to_dict__()
+
+        # Check for incremental log file, should be removed after finalize_log
+        self.assertFalse(os.path.exists(self.logger.tempfile.name))
+
+    def test_incremental_logging(self):
+        self.setUpWithIncrementalLoggingCustomPath()
+
+        self.logger = LogDefer()
+        log_message = "This is a debug message"
+        self.logger.debug(log_message)
+
+        # Check for incremental log file
+        self.assertTrue(os.path.exists(self.logger.tempfile.name))
+
+        log_object = self.__log_defer_to_dict__()
+
+        # Check for incremental log file, should be removed after finalize_log
+        self.assertFalse(os.path.exists(self.logger.tempfile.name))
 
     def __log_defer_to_dict__(self):
         json_output = self.logger.finalize_log()
