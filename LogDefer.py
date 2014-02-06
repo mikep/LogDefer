@@ -38,7 +38,7 @@ class LogDefer(object):
     def record_incremental_log(self):
         if self.tempfile:
             self.tempfile.write(
-                self.__log_message_json__({time.time(): self.message})
+                str(self.__log_message_json__({time.time(): self.message})).encode('utf-8')
             )
 
     def add_message(self, level='30', message="", data=None, *args):
